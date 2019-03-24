@@ -82,8 +82,18 @@ module.exports = {
   scoreLogs: (data) => {
     return request('/score/logs', true, 'post', data)
   },
+  shareGroupGetScore: (referrer, encryptedData, iv) => {
+    return request('/score/share/wxa/group', true, 'post', {
+      referrer,
+      encryptedData,
+      iv
+    })
+  },
   kanjiaList: (data) => {
     return request('/shop/goods/kanjia/list', true, 'post', data)
+  },
+  kanjiaSet: (goodsId) => {
+    return request('/shop/goods/kanjia/set', true, 'get', { goodsId })
   },
   kanjiaJoin: (kjid, token) => {
     return request('/shop/goods/kanjia/join', true, 'post', {
@@ -206,6 +216,11 @@ module.exports = {
     return request('/user/shipping-address/detail', true, 'get', {
       id,
       token
+    })
+  },
+  pingtuanSet: (goodsId) => {
+    return request('/shop/goods/pingtuan/set', true, 'get', {
+      goodsId
     })
   },
   pingtuanOpen: (goodsId, token) => {
