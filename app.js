@@ -1,7 +1,9 @@
-const WXAPI = require('wxapi/main')
+const WXAPI = require('apifm-wxapi')
+const CONFIG = require('config.js')
+const AUTH = require('utils/auth')
 App({
-  navigateToLogin: false,
   onLaunch: function() {
+    WXAPI.init(CONFIG.subDomain) // 从根目录的 config.js 文件中读取
     const that = this;
     // 检测新版本
     const updateManager = wx.getUpdateManager()
@@ -59,11 +61,15 @@ App({
       that.globalData.vipLevel = res.data
     })
     //  获取商城名称
-    WXAPI.queryConfig({
-      key: 'mallName'
-    }).then(function(res) {
+    WXAPI.queryConfigBatch('mallName,recharge_amount_min,WITHDRAW_MIN,ALLOW_SELF_COLLECTION,RECHARGE_OPEN').then(function(res) {
       if (res.code == 0) {
-        wx.setStorageSync('mallName', res.data.value);
+        res.data.forEach(config => {
+          wx.setStorageSync(config.key, config.value);
+          if (config.key === 'recharge_amount_min') {
+            that.globalData.recharge_amount_min = res.data.value;
+          }
+        })
+        
       }
     })
     WXAPI.scoreRules({
@@ -73,26 +79,6 @@ App({
         that.globalData.order_reputation_score = res.data[0].score;
       }
     })
-    // 获取充值的最低金额
-    WXAPI.queryConfig({
-      key: 'recharge_amount_min'
-    }).then(function(res) {
-      if (res.code == 0) {
-        that.globalData.recharge_amount_min = res.data.value;
-      }
-    })
-  },
-  goLoginPageTimeOut: function() {
-    if (this.navigateToLogin){
-      return
-    }
-    wx.removeStorageSync('token')
-    this.navigateToLogin = true
-    setTimeout(function() {
-      wx.navigateTo({
-        url: "/pages/authorize/index"
-      })
-    }, 1000)
   },
   goStartIndexPage: function() {
     setTimeout(function() {
@@ -102,23 +88,6 @@ App({
     }, 1000)
   },  
   onShow (e) {
-    const _this = this
-    const token = wx.getStorageSync('token');
-    if (!token) {
-      _this.goLoginPageTimeOut()
-      return
-    }
-    WXAPI.checkToken(token).then(function (res) {
-      if (res.code != 0) {
-        wx.removeStorageSync('token')
-        _this.goLoginPageTimeOut()
-      }
-    })
-    wx.checkSession({
-      fail() {
-        _this.goLoginPageTimeOut()
-      }
-    })
     this.globalData.launchOption = e
     // 保存邀请人
     if (e && e.query && e.query.inviter_id) {
@@ -128,12 +97,12 @@ App({
         wx.getShareInfo({
           shareTicket: e.shareTicket,
           success: res => {
-            console.error(res)
-            console.error({
-              referrer: e.query.inviter_id,
-              encryptedData: res.encryptedData,
-              iv: res.iv
-            })
+            // console.error(res)
+            // console.error({
+            //   referrer: e.query.inviter_id,
+            //   encryptedData: res.encryptedData,
+            //   iv: res.iv
+            // })
             WXAPI.shareGroupGetScore(
               e.query.inviter_id,
               res.encryptedData,
@@ -142,7 +111,13 @@ App({
           }
         })
       }
-    }    
+    }
+    // 自动登录
+    AUTH.checkHasLogined().then(isLogined => {
+      if (!isLogined) {
+        AUTH.login()
+      }
+    })
   },
   globalData: {                
     isConnected: true,

@@ -1,6 +1,9 @@
 import initCalendar from '../../template/calendar/index';
 import { setTodoLabels } from '../../template/calendar/index';
-const WXAPI = require('../../wxapi/main')
+const WXAPI = require('apifm-wxapi')
+const AUTH = require('../../utils/auth')
+
+let interstitialAd = null
 
 Page({
 
@@ -15,7 +18,14 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-
+    if (wx.createInterstitialAd) {
+      interstitialAd = wx.createInterstitialAd({
+        adUnitId: 'adunit-b5abb25cb93c2769'
+      })
+      interstitialAd.onLoad(() => { })
+      interstitialAd.onError((err) => { })
+      interstitialAd.onClose(() => { })
+    }
   },
 
   /**
@@ -29,6 +39,29 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function () {
+    AUTH.checkHasLogined().then(isLogined => {
+      if (isLogined) {
+        this.doneShow();
+      } else {
+        wx.showModal({
+          title: '提示',
+          content: '本次操作需要您的登录授权',
+          cancelText: '暂不登录',
+          confirmText: '前往登录',
+          success(res) {
+            if (res.confirm) {
+              wx.switchTab({
+                url: "/pages/my/index"
+              })
+            } else {
+              wx.navigateBack()
+            }
+          }
+        })
+      }
+    })
+  },
+  doneShow: function () {
     initCalendar({
       afterTapDay: (currentSelect, allSelectedDays) => {
         // 不是今天，直接 return 
@@ -85,6 +118,12 @@ Page({
         })
       }
     })    
+    // 显示广告
+    if (interstitialAd) {
+      interstitialAd.show().catch((err) => {
+        console.error(err)
+      })
+    }
   },
 
   /**

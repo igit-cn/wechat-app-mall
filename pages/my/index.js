@@ -1,30 +1,64 @@
 const app = getApp()
 const CONFIG = require('../../config.js')
-const WXAPI = require('../../wxapi/main')
+const WXAPI = require('apifm-wxapi')
+const AUTH = require('../../utils/auth')
+const TOOLS = require('../../utils/tools.js')
+
 Page({
 	data: {
+    wxlogin: true,
+
     balance:0.00,
     freeze:0,
     score:0,
-    score_sign_continuous:0
+    score_sign_continuous:0,
+    rechargeOpen: false // 是否开启充值[预存]功能
   },
 	onLoad() {
-    
+    let rechargeOpen = wx.getStorageSync('RECHARGE_OPEN')
+    if (rechargeOpen && rechargeOpen == "1") {
+      rechargeOpen = true
+    } else {
+      rechargeOpen = false
+    }
+    this.setData({
+      rechargeOpen: rechargeOpen
+    })
 	},	
   onShow() {
-    let that = this;
-    let userInfo = wx.getStorageSync('userInfo')
-    if (!userInfo) {
-      app.goLoginPageTimeOut()
+    const _this = this
+    this.setData({
+      version: CONFIG.version,
+      vipLevel: app.globalData.vipLevel
+    })
+    AUTH.checkHasLogined().then(isLogined => {
+      this.setData({
+        wxlogin: isLogined
+      })
+      if (isLogined) {
+        _this.getUserApiInfo();
+        _this.getUserAmount();
+      }
+    })
+    // 获取购物车数据，显示TabBarBadge
+    TOOLS.showTabBarBadge();
+  },
+  onGotUserInfo(e){
+    if (!e.detail.userInfo) {
+      wx.showToast({
+        title: '您已取消登录',
+        icon: 'none',
+      })
+      return;
+    }
+    if (app.globalData.isConnected) {
+      AUTH.register(this);
     } else {
-      that.setData({
-        userInfo: userInfo,
-        version: CONFIG.version,
-        vipLevel: app.globalData.vipLevel
+      wx.showToast({
+        title: '当前无网络',
+        icon: 'none',
       })
     }
-    this.getUserApiInfo();
-    this.getUserAmount();
   },
   aboutUs : function () {
     wx.showModal({
@@ -33,23 +67,27 @@ Page({
       showCancel:false
     })
   },
+  loginOut(){
+    AUTH.loginOut()
+    wx.reLaunch({
+      url: '/pages/my/index'
+    })
+  },
   getPhoneNumber: function(e) {
     if (!e.detail.errMsg || e.detail.errMsg != "getPhoneNumber:ok") {
       wx.showModal({
         title: '提示',
-        content: '无法获取手机号码:' + e.detail.errMsg,
+        content: e.detail.errMsg,
         showCancel: false
       })
       return;
     }
     var that = this;
-    WXAPI.bindMobile({
-      token: wx.getStorageSync('token'),
-      encryptedData: e.detail.encryptedData,
-      iv: e.detail.iv
-    }).then(function (res) {
+    WXAPI.bindMobileWxa(wx.getStorageSync('token'), e.detail.encryptedData, e.detail.iv).then(function (res) {
       if (res.code === 10002) {
-        app.goLoginPageTimeOut()
+        this.setData({
+          wxlogin: false
+        })
         return
       }
       if (res.code == 0) {
@@ -93,9 +131,6 @@ Page({
       }
     })
   },
-  relogin:function(){
-    app.goLoginPageTimeOut()
-  },
   goAsset: function () {
     wx.navigateTo({
       url: "/pages/asset/index"
@@ -110,5 +145,20 @@ Page({
     wx.navigateTo({
       url: "/pages/order-list/index?type=" + e.currentTarget.dataset.type
     })
-  }
+  },
+  cancelLogin() {
+    this.setData({
+      wxlogin: true
+    })
+  },
+  processLogin(e) {
+    if (!e.detail.userInfo) {
+      wx.showToast({
+        title: '已取消',
+        icon: 'none',
+      })
+      return;
+    }
+    AUTH.register(this);
+  },
 })

@@ -4,51 +4,63 @@
 
 使用说明和常见问题，可参阅下面的说明，如还有疑问，可访问工厂官网 [https://www.it120.cc/](https://www.it120.cc/) 寻求帮助！
 
+# 今日头条/抖音小程序版本
+
+本项目的今日头条/抖音小程序版本，请移步至下面的地址：
+
+[https://github.com/EastWorld/tt-app-mall](https://github.com/EastWorld/tt-app-mall)
+
 ## 扫码体验
 
-<p>
-<img src="https://cdn.it120.cc/apifactory/2017/09/15/487409738ebb80c44eda01c46d59b20c.jpg" width="200px">
-<img src="https://cdn.it120.cc/apifactory/2019/03/29/9e30cfe31eabcd218eb9c434f17e9295.jpg" width="200px">
-</p>
+<img src="https://cdn.it120.cc/apifactory/2019/06/28/a8304003-3218-4a47-95cf-84d82ebdc07b.jpg" width="200px">
 
 ## 其他开源模板
 
-### TianguoguoXiaopu
+| 舔果果小铺 | 面馆风格小程序 | AI名片 |
+| :------: | :------: | :------: |
+| <img src="https://cdn.it120.cc/apifactory/2018/04/01/b7b8f5a0fcfc72454ade8510ab929717.jpg" width="200px"> | <img src="https://cdn.it120.cc/apifactory/2019/03/29/9e30cfe31eabcd218eb9c434f17e9295.jpg" width="200px"> | <img src="https://cdn.it120.cc/apifactory/2018/12/18/c2324da4eea91602f385db5b523b13ca.jpg" width="200px"> | 
+| [开源地址](https://github.com/walcer/TianguoguoXiaopu) | [开源地址](https://gitee.com/javazj/noodle_shop_procedures) | [开源地址](https://github.com/gooking/visitingCard) |
 
-<p>
-<img src="https://cdn.it120.cc/apifactory/2018/04/01/b7b8f5a0fcfc72454ade8510ab929717.jpg" width="200px">
-</p>
+## 联系作者
 
-[Github地址](https://github.com/qindiandadudu/TianguoguoXiaopu)
+| 微信好友 | 支付宝好友 |
+| :------: | :------: |
+| <img src="https://cdn.it120.cc/apifactory/2019/07/03/a86f7e46-1dbc-42fe-9495-65403659671e.jpeg" width="200px"> | <img src="https://cdn.it120.cc/apifactory/2019/07/03/fda59aeb-4943-4379-93bb-92856740bd6a.jpeg" width="200px"> |
 
 ## 接口 & 后台声明
 
 本项目为小程序商城纯前端项目，由于人力和精力所限，本项目并未有开发配套的后台系统，而是直接使用了 [api 工厂](https://www.it120.cc/) 提供的免费接口和后台，可以完全满足本项目的所有功能需求。
 
-- [接口 SDK](https://github.com/gooking/wxapi)
+- [接口 SDK](https://github.com/gooking/apifm-wxapi)
 
-- [免费后台](https://www.it120.cc/user)
+- [免费后台](https://admin.it120.cc)
 
 - [WeUI](https://github.com/Tencent/weui-wxss/)
 
-## 关于分类页面
+## 初始化测试数据
 
-感谢 @yrx0910 编写并提交了分类页面；
+登录后台，左侧菜单 “工厂设置” --> “数据克隆” --> “将别人的数据克隆给我”
 
-不过新增的分类页面视觉美观度上稍欠缺，所以，项目模块并未开启分类页面；
+对方商户ID填写  951
 
-期待后面可以有朋友协助美化~
+点击 “立即克隆” ，然后退出后台重新登录
 
-如果您先体验分类页面，可以在 app.json 中放开分类底部菜单的入口:
+你将立即享有初始化测试数据，方便你进行测试
 
-```java
-{
-  "pagePath": "pages/category/category",
-  "iconPath": "images/nav/ic_catefory_normal.png",
-  "selectedIconPath": "images/nav/ic_catefory_pressed.png",
-  "text": "分类"
-}
+## 编译说明
+
+本项目使用基于 ES7 的语法，所以请在开发工具中开启 “增强编译”， 否则会提示以下错误：
+
 ```
+thirdScriptError 
+ sdk uncaught third Error 
+ regeneratorRuntime is not defined 
+ ReferenceError: regeneratorRuntime is not defined
+```
+
+<img src="https://dcdn.it120.cc/2019/08/28/c5169c15-abda-4e5f-91d5-6dfcfe382fb2.png">
+
+**如果你的开发工具没用看到“增强编译”的选项，请升级开发工具到最新版**
 
 ## 使用说明
 
@@ -64,7 +76,7 @@
 module.exports = {
   version: "5.0",
   note: "优化接口调用流程",
-  subDomain: "tz", // 如果你的域名是： https://api.it120.cc/abcd 那么这里只要填写 abcd
+  subDomain: "tz", // 根据教程 https://www.yuque.com/apifm/doc/qr6l4m 查看你自己的 subDomain
   appid: "wxa46b09d413fbcaff", // 您的小程序的appid，购物单功能需要使用
   shareProfile: "百款精品商品，总有一款适合您" // 首页转发的时候话术
 };
@@ -76,22 +88,62 @@ module.exports = {
 */
 ```
 
-4、[设置小程序合法服务器域名](https://www.it120.cc/info/faq/10469)
+4、[设置小程序合法服务器域名](https://www.yuque.com/apifm/doc/tvpou9)
 
 5、重启您的小程序开发工具，完成
 
 6、如何在后台管理小程序启动图和首页头部的轮播 banner 图片
 
-```javascript
+```
 这两个功能都是使用后台 “系统设置” --> “banner” 管理功能来实现的；
-后台发布banner的时候，自定义类型请分别填写  app  和  index；
+后台发布banner的时候，自定义类型请分别填写  app  和  new
 小程序会自动读取类型为 app 的banner图片作为启动展示图片；
 小程序会自动读取类型为 new 的banner图片作为首页分类下的轮播图；
 ```
 
+7、订阅消息(以前的模板消息)如何使用？请查阅 “api工厂” 的教程：
+
+[https://www.yuque.com/apifm/doc/sw1dg9](https://www.yuque.com/apifm/doc/sw1dg9)
+
+## 系统参数设置
+
+*登录后台，左侧菜单“系统设置” --> “系统参数” 菜单；如果你找不到该菜单，那是因为你还没启用 “系统参数设置” 的模块，左侧菜单“系统设置” --> “模块管理”，启用 “系统参数设置” 模块，然后F5刷新网页即可*
+
+- RECHARGE_OPEN （开关类型）
+  
+  **微信审核的时候，如果你的小程序有充值功能会导致审核不通过，所以默认情况下，小程序将隐藏充值提现功能，通过该参数可开启充值提现的显示**
+
+- ROLE_FOR_SHOP （开关类型）
+  
+  **如果你有多店铺功能，改功能将开启店铺管理员功能，届时，每个店铺管理员将只能管理自己店铺下的商品和订单，而无法查看并管理其他店铺的订单**
+
+- ALLOW_SELF_COLLECTION （开关类型）
+  
+  **是否开启到店自提功能（快递和到店自提客户自己可以选择）**
+
+- WITHDRAW_FEE_PERCENT （文本参数）
+  
+  **提现手续费比例，填1为 1%**
+
+- free_shipping_for_purchases （文本参数）
+  
+  **下单金额满多少后实现包邮**
+
+- mallName （文本参数）
+  
+  **小程序名称（商城名称）**
+
+- REGISTER_OPEN_SELLER （开关类型）
+  
+  **新注册用户是否自动成为分销商，如果不开启该参数，分销商需要自己申请，你进行审核**
+  
+  [《api工厂三级分销插件使用教程》](https://www.yuque.com/apifm/doc/pgfwvu)
+
 ## 常见问题
 
-- [如何修改小程序商城的标题？](https://www.it120.cc/info/wechat-app-mall/10478)
+- 如何修改小程序商城的标题？
+
+  请查看上面的系统设置中的 **mallName**
 
 - “无法登录” / Token 无效 ？
 
@@ -102,7 +154,7 @@ module.exports = {
 
 - 登录后台发布您自己的商品
 
-- [如何给 Banner 增加链接，点击打开某个商品？](https://www.it120.cc/info/wechat-app-mall/10477)
+- [如何给 Banner 增加链接，点击打开某个商品？](https://www.yuque.com/apifm/doc/wv5p5l)
 
 - 工厂后台设置 appid、secret、微信支付商户号和秘钥时候的 token 怎么填？
 
@@ -126,7 +178,6 @@ module.exports = {
 
   可以！
 
-  <img src="https://cdn.it120.cc/apifactory/2017/07/29/18ae9b8aaedcd747fc5f1c3fa8bc0fe4.png" width="300px">
 
   1. 点击页面顶部的 Star ，关注后，项目有最新动态 github 会提醒您，不错过重要更新；
   2. 点击页面顶部的 Fork， 将您需要增加的功能完成 小程序 端界面的调整，然后在 github 上请求将您的代码合并到 EastWorld；
@@ -162,7 +213,31 @@ module.exports = {
   1. 创建订单接口增加 expireMinutes 参数；
   2. 代表多少分钟未支付自动关闭本订单，传 0 不自动关闭订单；
 
-- [更多问题？](https://www.it120.cc/info/all)
+- 我没有那么多分类，首页2行分类能否改成1行？
+
+  打开 /pages/index/index.js 文件，找到下图所示位置，代码
+
+  ```js
+  // 这行代码为显示2行
+  const _n = Math.ceil(categories.length / 2)
+  // 这行代码为显示1行
+  const _n = Math.ceil(categories.length)
+  ```
+
+  <img src="https://dcdn.it120.cc/2019/09/05/31729239-dc73-47f6-938a-9ab2c9c0bfdd.png">
+
+- [更多问题？](https://www.yuque.com/apifm/doc)
+
+- 如何删除小程序源码中的广告位？
+
+  1. 在小程序开发工具中全局搜索关键词: <ad
+  2. 找到以后，将这一行广告位的代码删除即可
+
+- android看得到图片，ios手机看不到图片
+  
+  这是wxparse解析器的问题 很多人都中枪~
+
+  全局搜索并注释掉 console.dir 就好了
 
 ## 如何升级到最新版
 

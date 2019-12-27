@@ -1,8 +1,11 @@
 const app = getApp()
-const WXAPI = require('../../wxapi/main')
+const WXAPI = require('apifm-wxapi')
+const AUTH = require('../../utils/auth')
 
 Page({
   data: {
+    wxlogin: true,
+
     totalScoreToPay: 0,
     goodsList: [],
     isNeedLogistics: 0, // 是否需要物流信息
@@ -16,11 +19,30 @@ Page({
     hasNoCoupons: true,
     coupons: [],
     youhuijine: 0, //优惠券金额
-    curCoupon: null // 当前选择使用的优惠券
+    curCoupon: null, // 当前选择使用的优惠券
+    allowSelfCollection: '0', // 是否允许到店自提
+    peisongType: 'kd', // 配送方式 kd,zq 分别表示快递/到店自取
+    remark: ''
   },
-  onShow: function () {
-    var that = this;
-    var shopList = [];
+  onShow(){
+    AUTH.checkHasLogined().then(isLogined => {
+      if (isLogined) {
+        this.doneShow()
+      } else {
+        this.setData({
+          wxlogin: isLogined
+        })
+      }
+    })
+  },
+  doneShow: function () {
+    let allowSelfCollection = wx.getStorageSync('ALLOW_SELF_COLLECTION')
+    if (!allowSelfCollection || allowSelfCollection != '1') {
+      allowSelfCollection = '0'
+      this.data.peisongType = 'kd'
+    }
+    const that = this;
+    let shopList = [];
     //立即购买下单
     if ("buyNow" == that.data.orderType) {
       var buyNowInfoMem = wx.getStorageSync('buyNowInfo');
@@ -41,14 +63,18 @@ Page({
     }
     that.setData({
       goodsList: shopList,
+      allowSelfCollection: allowSelfCollection,
+      peisongType: that.data.peisongType
     });
     that.initShippingAddress();
   },
 
   onLoad: function (e) {
     let _data = {
-      isNeedLogistics: 1,
-      orderType: e.orderType
+      isNeedLogistics: 1
+    }
+    if (e.orderType) {
+      _data.orderType = e.orderType
     }
     if (e.pingtuanOpenId) {
       _data.pingtuanOpenId = e.pingtuanOpenId
@@ -65,19 +91,34 @@ Page({
     }
     return aaa;
   },
-
+  remarkChange(e){
+    this.data.remark = e.detail.value
+  },
+  goCreateOrder(){
+    wx.requestSubscribeMessage({
+      tmplIds: ['ITVuuD_cwYN-5BjXne8cSktDo43xetj0u-lpvFZEQQs',
+        'dw9Tzh9r0sw7Gjab0ovQJx3bP3gdXmF_FZvpnxPd6hc'],
+      success(res) {
+        
+      },
+      fail(e) {
+        console.error(e)
+      },
+      complete: (e) => {
+        this.createOrder(true)
+      },
+    })
+  },
   createOrder: function (e) {
     var that = this;
     var loginToken = wx.getStorageSync('token') // 用户登录 token
-    var remark = ""; // 备注信息
-    if (e) {
-      remark = e.detail.value.remark; // 备注信息
-    }
+    var remark = this.data.remark; // 备注信息
 
-    var postData = {
+    let postData = {
       token: loginToken,
       goodsJsonStr: that.data.goodsJsonStr,
-      remark: remark
+      remark: remark,
+      peisongType: that.data.peisongType
     };
     if (that.data.kjId) {
       postData.kjid = that.data.kjId
@@ -85,7 +126,7 @@ Page({
     if (that.data.pingtuanOpenId) {
       postData.pingtuanOpenId = that.data.pingtuanOpenId
     }
-    if (that.data.isNeedLogistics > 0) {
+    if (that.data.isNeedLogistics > 0 && postData.peisongType == 'kd') {
       if (!that.data.curAddressData) {
         wx.hideLoading();
         wx.showModal({
@@ -95,15 +136,17 @@ Page({
         })
         return;
       }
-      postData.provinceId = that.data.curAddressData.provinceId;
-      postData.cityId = that.data.curAddressData.cityId;
-      if (that.data.curAddressData.districtId) {
-        postData.districtId = that.data.curAddressData.districtId;
-      }
-      postData.address = that.data.curAddressData.address;
-      postData.linkMan = that.data.curAddressData.linkMan;
-      postData.mobile = that.data.curAddressData.mobile;
-      postData.code = that.data.curAddressData.code;
+      if (postData.peisongType == 'kd') {
+        postData.provinceId = that.data.curAddressData.provinceId;
+        postData.cityId = that.data.curAddressData.cityId;
+        if (that.data.curAddressData.districtId) {
+          postData.districtId = that.data.curAddressData.districtId;
+        }
+        postData.address = that.data.curAddressData.address;
+        postData.linkMan = that.data.curAddressData.linkMan;
+        postData.mobile = that.data.curAddressData.mobile;
+        postData.code = that.data.curAddressData.code;
+      }      
     }
     if (that.data.curCoupon) {
       postData.couponId = that.data.curCoupon.id;
@@ -137,66 +180,6 @@ Page({
         that.getMyCoupons();
         return;
       }
-      WXAPI.addTempleMsgFormid({
-        token: wx.getStorageSync('token'),
-        type: 'form',
-        formId: e.detail.formId
-      })
-      // 配置模板消息推送
-      var postJsonString = {};
-      postJsonString.keyword1 = {
-        value: res.data.dateAdd,
-        color: '#173177'
-      }
-      postJsonString.keyword2 = {
-        value: res.data.amountReal + '元',
-        color: '#173177'
-      }
-      postJsonString.keyword3 = {
-        value: res.data.orderNumber,
-        color: '#173177'
-      }
-      postJsonString.keyword4 = {
-        value: '订单已关闭',
-        color: '#173177'
-      }
-      postJsonString.keyword5 = {
-        value: '您可以重新下单，请在30分钟内完成支付',
-        color: '#173177'
-      }
-      WXAPI.sendTempleMsg({
-        module: 'order',
-        business_id: res.data.id,
-        trigger: -1,
-        postJsonString: JSON.stringify(postJsonString),
-        template_id: 'mGVFc31MYNMoR9Z-A9yeVVYLIVGphUVcK2-S2UdZHmg',
-        type: 0,
-        token: wx.getStorageSync('token'),
-        url: 'pages/index/index'
-      })
-      postJsonString = {};
-      postJsonString.keyword1 = {
-        value: '您的订单已发货，请注意查收',
-        color: '#173177'
-      }
-      postJsonString.keyword2 = {
-        value: res.data.orderNumber,
-        color: '#173177'
-      }
-      postJsonString.keyword3 = {
-        value: res.data.dateAdd,
-        color: '#173177'
-      }
-      WXAPI.sendTempleMsg({
-        module: 'order',
-        business_id: res.data.id,
-        trigger: 2,
-        postJsonString: JSON.stringify(postJsonString),
-        template_id: 'Arm2aS1rsklRuJSrfz-QVoyUzLVmU2vEMn_HgMxuegw',
-        type: 0,
-        token: wx.getStorageSync('token'),
-        url: 'pages/order-details/index?id=' + res.data.id
-      })
       // 下单成功，跳转到订单管理界面
       wx.redirectTo({
         url: "/pages/order-list/index"
@@ -208,7 +191,7 @@ Page({
     WXAPI.defaultAddress(wx.getStorageSync('token')).then(function (res) {
       if (res.code == 0) {
         that.setData({
-          curAddressData: res.data
+          curAddressData: res.data.info
         });
       } else {
         that.setData({
@@ -299,5 +282,23 @@ Page({
       youhuijine: this.data.coupons[selIndex].money,
       curCoupon: this.data.coupons[selIndex]
     });
-  }
+  },
+  radioChange (e) {
+    this.setData({
+      peisongType: e.detail.value
+    })
+  },
+  cancelLogin() {
+    wx.navigateBack()
+  },
+  processLogin(e) {
+    if (!e.detail.userInfo) {
+      wx.showToast({
+        title: '已取消',
+        icon: 'none',
+      })
+      return;
+    }
+    AUTH.register(this);
+  },
 })

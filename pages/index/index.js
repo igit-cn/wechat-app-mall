@@ -1,5 +1,7 @@
-const WXAPI = require('../../wxapi/main')
+const WXAPI = require('apifm-wxapi')
 const CONFIG = require('../../config.js')
+const TOOLS = require('../../utils/tools.js')
+
 //获取应用实例
 var app = getApp()
 Page({
@@ -10,15 +12,8 @@ Page({
     goodsRecommend: [], // 推荐商品
     kanjiaList: [], //砍价商品列表
     pingtuanList: [], //拼团商品列表
-    kanjiaGoodsMap: {}, //砍价商品列表
 
-    indicatorDots: true,
-    autoplay: true,
-    interval: 3000,
-    duration: 1000,
     loadingHidden: false, // loading
-    userInfo: {},
-    swiperCurrent: 0,
     selectCurrent: 0,
     categories: [],
     activeCategoryId: 0,
@@ -48,13 +43,6 @@ Page({
     });
     this.getGoodsList(this.data.activeCategoryId);
   },
-  //事件处理函数
-  swiperchange: function(e) {
-    //console.log(e.detail.current)
-    this.setData({
-      swiperCurrent: e.detail.current
-    })
-  },
   toDetailsTap: function(e) {
     wx.navigateTo({
       url: "/pages/goods-details/index?id=" + e.currentTarget.dataset.id
@@ -77,6 +65,9 @@ Page({
       withShareTicket: true
     }) 
     const that = this
+    // if (e && e.query && e.query.inviter_id) { 
+    //   wx.setStorageSync('referrer', e.query.inviter_id)
+    // }
     if (e && e.scene) {
       const scene = decodeURIComponent(e.scene)
       if (scene) {        
@@ -96,7 +87,7 @@ Page({
       if (res.code == 700) {
         wx.showModal({
           title: '提示',
-          content: '请在后台添加 banner 轮播图片，自定义类型填写 index',
+          content: '请在后台添加 banner 轮播图片，自定义类型填写 new',
           showCancel: false
         })
       } else {
@@ -111,15 +102,17 @@ Page({
       })
     })
     WXAPI.goodsCategory().then(function(res) {
-      let categories = [{
-        id: 0,
-        icon: '/images/fl.png',
-        name: "全部"
-      }];
+      // let categories = [{
+      //   id: 0,
+      //   icon: '/images/fl.png',
+      //   name: "全部"
+      // }];
+      let categories = [];
       if (res.code == 0) {
         categories = categories.concat(res.data)
       }
       const _n = Math.ceil(categories.length / 2)
+      // const _n = Math.ceil(categories.length)
       that.setData({
         categories: categories,
         category_box_width: 150 * _n,
@@ -141,6 +134,10 @@ Page({
     that.getNotice()
     that.kanjiaGoods()
     that.pingtuanGoods()
+  },
+  onShow: function(e){
+    // 获取购物车数据，显示TabBarBadge
+    TOOLS.showTabBarBadge();
   },
   onPageScroll(e) {
     let scrollTop = this.data.scrollTop
@@ -229,6 +226,7 @@ Page({
       curPage: 1
     });
     this.getGoodsList(this.data.activeCategoryId)
+    wx.stopPullDownRefresh()
   },
   // 以下为搜索框事件
   showInput: function () {
@@ -252,17 +250,16 @@ Page({
       inputVal: e.detail.value
     });
   },
-  // 以下为砍价业务
-  kanjiaGoods(){
-    const _this = this
-    WXAPI.kanjiaList().then(function (res) {
-      if (res.code == 0) {
-        _this.setData({
-          kanjiaList: res.data.result,
-          kanjiaGoodsMap: res.data.goodsMap
-        })
-      }
-    })
+  // 获取砍价商品
+  async kanjiaGoods(){
+    const res = await WXAPI.goods({
+      kanjia: true
+    });
+    if (res.code == 0) {
+      this.setData({
+        kanjiaList: res.data
+      })
+    }
   },
   goCoupons: function (e) {
     wx.navigateTo({

@@ -1,3 +1,6 @@
+@import "/template/login/index.wxss";
+
+
 .container{
   min-height: 100%;
   overflow: hidden;
@@ -29,7 +32,7 @@
 .asset .item {
   display: flex;
   flex-direction: column;
-  width:375rpx;
+  width:250rpx;
   text-align: center;
   font-size: 13px;
   line-height: 20px;
@@ -77,13 +80,13 @@
 .order-shortcut .item {
   display: flex;
   flex-direction: column;
-  width: 187rpx;
+  width: 150rpx;
   text-align: center;
 }
 .order-shortcut .item .icon {
   width: 67rpx;
   height: 67rpx;
-  margin-left: 60rpx;
+  margin-left: 45rpx;
 }
 .order-shortcut .item .text {
   font-size: 12px;

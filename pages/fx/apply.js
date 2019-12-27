@@ -1,5 +1,5 @@
 const app = getApp()
-const WXAPI = require('../../wxapi/main')
+const WXAPI = require('apifm-wxapi')
 
 Page({
 
@@ -7,7 +7,7 @@ Page({
    * 页面的初始数据
    */
   data: {
-
+    
   },
 
   /**
@@ -28,7 +28,14 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function () {
-
+    const _this = this
+    WXAPI.userDetail(wx.getStorageSync('token')).then(res => {
+      if (res.code === 0) {
+        _this.setData({
+          userDetail: res.data
+        })
+      }
+    })
   },
 
   /**
@@ -65,14 +72,29 @@ Page({
   onShareAppMessage: function () {
 
   },
-  bindSave: function (e) {
-    WXAPI.addTempleMsgFormid({
-      token: wx.getStorageSync('token'),
-      type: 'form',
-      formId: e.detail.formId
+  nameChange(e){
+    this.data.name = e.detail.value
+  },
+  mobileChange(e){
+    this.data.mobile = e.detail.value
+  },
+  bindSave(){
+    wx.requestSubscribeMessage({
+      tmplIds: ['7sO58VXh0T5a6SwB5c9hR43bnBPxW8E6v3d70QQXuIk'],
+      success(res) {
+
+      },
+      fail(e) {
+        console.error(e)
+      },
+      complete: (e) => {
+        this.bindSaveDone()
+      },
     })
-    const name = e.detail.value.name
-    const mobile = e.detail.value.mobile
+  },
+  bindSaveDone: function () {
+    const name = this.data.name
+    const mobile = this.data.mobile
     if (!name) {
       wx.showToast({
         title: '请输入真实姓名',
@@ -99,5 +121,5 @@ Page({
         url: "/pages/fx/apply-status"
       })
     })
-  }
+  },
 })
