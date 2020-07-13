@@ -3,7 +3,7 @@ const CONFIG = require('config.js')
 const AUTH = require('utils/auth')
 App({
   onLaunch: function() {
-    WXAPI.init(CONFIG.subDomain) // 从根目录的 config.js 文件中读取
+    WXAPI.init(CONFIG.subDomain)
     const that = this;
     // 检测新版本
     const updateManager = wx.getUpdateManager()
@@ -46,82 +46,81 @@ App({
         wx.showToast({
           title: '网络已断开',
           icon: 'loading',
-          duration: 2000,
-          complete: function() {
-            that.goStartIndexPage()
-          }
+          duration: 2000
         })
       } else {
         that.globalData.isConnected = true
         wx.hideToast()
       }
-    });
-    //  获取接口和后台权限
-    WXAPI.vipLevel().then(res => {
-      that.globalData.vipLevel = res.data
     })
-    //  获取商城名称
-    WXAPI.queryConfigBatch('mallName,recharge_amount_min,WITHDRAW_MIN,ALLOW_SELF_COLLECTION,RECHARGE_OPEN').then(function(res) {
+    WXAPI.queryConfigBatch('mallName,WITHDRAW_MIN,ALLOW_SELF_COLLECTION,order_hx_uids,subscribe_ids,share_profile').then(res => {
       if (res.code == 0) {
         res.data.forEach(config => {
           wx.setStorageSync(config.key, config.value);
-          if (config.key === 'recharge_amount_min') {
-            that.globalData.recharge_amount_min = res.data.value;
-          }
         })
-        
-      }
-    })
-    WXAPI.scoreRules({
-      code: 'goodReputation'
-    }).then(function(res) {
-      if (res.code == 0) {        
-        that.globalData.order_reputation_score = res.data[0].score;
+        if (this.configLoadOK) {
+          this.configLoadOK()
+        }
       }
     })
   },
-  goStartIndexPage: function() {
-    setTimeout(function() {
-      wx.redirectTo({
-        url: "/pages/start/start"
-      })
-    }, 1000)
-  },  
+
   onShow (e) {
-    this.globalData.launchOption = e
     // 保存邀请人
     if (e && e.query && e.query.inviter_id) {
       wx.setStorageSync('referrer', e.query.inviter_id)
       if (e.shareTicket) {
-        // 通过分享链接进来
         wx.getShareInfo({
           shareTicket: e.shareTicket,
           success: res => {
-            // console.error(res)
-            // console.error({
-            //   referrer: e.query.inviter_id,
-            //   encryptedData: res.encryptedData,
-            //   iv: res.iv
-            // })
-            WXAPI.shareGroupGetScore(
-              e.query.inviter_id,
-              res.encryptedData,
-              res.iv
-            )
+            console.log(res)
+            console.log({
+              referrer: e.query.inviter_id,
+              encryptedData: res.encryptedData,
+              iv: res.iv
+            })
+            wx.login({
+              success(loginRes) {
+                if (loginRes.code) {
+                  WXAPI.shareGroupGetScore(
+                    loginRes.code,
+                    e.query.inviter_id,
+                    res.encryptedData,
+                    res.iv
+                  ).then(_res => {
+                    console.log(_res)
+                  }).catch(err => {
+                    console.error(err)
+                  })
+                } else {
+                  console.error('登录失败！' + loginRes.errMsg)
+                }
+              }
+            })
           }
         })
       }
     }
     // 自动登录
-    AUTH.checkHasLogined().then(isLogined => {
+    AUTH.checkHasLogined().then(async isLogined => {
       if (!isLogined) {
         AUTH.login()
+      } else {
+        AUTH.getUserInfo().then((res) => {
+          const { userInfo } = res
+          // 更新用户信息
+          WXAPI.modifyUserInfo({
+            avatarUrl: userInfo.avatarUrl,
+            city: userInfo.city,
+            nick: userInfo.nickName,
+            province: userInfo.province,
+            token: wx.getStorageSync('token')
+          })
+        })
       }
     })
   },
-  globalData: {                
-    isConnected: true,
-    launchOption: undefined,
-    vipLevel: 0
+  globalData: {
+    isConnected: true
   }
 })

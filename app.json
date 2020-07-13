@@ -1,7 +1,13 @@
 {
   "pages": [
     "pages/start/start",
+    "pages/shop/select",
     "pages/index/index",
+    "pages/notice/index",
+    "pages/notice/show",
+    "pages/category/category",
+    "pages/goods/list",
+    "pages/goods/fav",
     "pages/goods-details/index",
     "pages/shop-cart/index",
     "pages/to-pay-order/index",
@@ -9,18 +15,17 @@
     "pages/address-add/index",
     "pages/order-list/index",
     "pages/order-details/index",
+    "pages/order-details/scan-result",
     "pages/order/refundApply",
     "pages/wuliu/index",
     "pages/my/index",
-    "pages/notice/show",
-    "pages/recharge/index",
     "pages/withdraw/index",
-    "pages/kanjia/index",
     "pages/score-excharge/index",
+    "pages/score-excharge/growth",
     "pages/asset/index",
     "pages/score/index",
+    "pages/score/growth",
     "pages/sign/index",
-    "pages/category/category",
     "pages/maidan/index",
     "pages/fx/apply",
     "pages/fx/apply-status",
@@ -29,12 +34,13 @@
     "pages/coupons/index",
     "pages/invoice/list",
     "pages/invoice/apply",
-    "pages/deposit/pay"
+    "pages/deposit/pay",
+    "pages/live/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "WeChat",
+    "navigationBarTitleText": "",
     "navigationBarTextStyle": "black",
     "onReachBottomDistance": 50
   },
@@ -70,8 +76,26 @@
       }
     ]
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "获取离你最近的门店"
+    }
+  },
   "navigateToMiniProgramAppIdList": [
     "wx56c8f077de74b07c"
   ],
+  "usingComponents": {
+    "float-menu": "/components/float-menu/index",
+    "parser":"/components/parser.20200414.min/parser",
+    "van-notice-bar": "@vant/weapp/notice-bar/index",
+    "van-search": "@vant/weapp/search/index",
+    "van-divider": "@vant/weapp/divider/index",
+    "van-icon": "@vant/weapp/icon/index",
+    "van-count-down": "@vant/weapp/count-down/index",
+    "van-button": "@vant/weapp/button/index",
+    "van-cell": "@vant/weapp/cell/index",
+    "van-cell-group": "@vant/weapp/cell-group/index",
+    "van-tag": "@vant/weapp/tag/index"
+  },
   "sitemapLocation": "sitemap.json"
 }

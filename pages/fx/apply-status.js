@@ -1,9 +1,6 @@
-const app = getApp()
-const CONFIG = require('../../config.js')
 const WXAPI = require('apifm-wxapi')
 const AUTH = require('../../utils/auth')
-
-import imageUtil from '../../utils/image'
+const ImageUtil = require('../../utils/image')
 
 Page({
 
@@ -93,6 +90,7 @@ Page({
       scene: 'inviter_id=' + wx.getStorageSync('uid'),
       page: 'pages/index/index',
       is_hyaline: true,
+      autoColor: true,
       expireHours: 1
     }).then(res => {
       wx.hideLoading()
@@ -107,7 +105,7 @@ Page({
     wx.getImageInfo({
       src: qrcode,
       success: (res) => {
-        const imageSize = imageUtil(res.width, res.height)
+        const imageSize = ImageUtil.imageUtil(res.width, res.height)
         const qrcodeWidth = imageSize.windowWidth / 2
         _this.setData({
           canvasHeight: qrcodeWidth
@@ -123,40 +121,9 @@ Page({
       }
     })
   },
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
+  onShareAppMessage() {    
     return {
-      title: '"' + wx.getStorageSync('mallName') + '" ' + CONFIG.shareProfile,
+      title: '"' + wx.getStorageSync('mallName') + '" ' + wx.getStorageSync('share_profile'),
       path: '/pages/index/index?inviter_id=' + wx.getStorageSync('uid'),
       success: function (res) {
         // 转发成功
