@@ -24,9 +24,13 @@ Page({
     curCouponShowText: '请选择使用优惠券', // 当前选择使用的优惠券
     peisongType: 'kd', // 配送方式 kd,zq 分别表示快递/到店自取
     remark: '',
-    shopIndex: -1
+    shopIndex: -1,
+    pageIsEnd: false
   },
   onShow(){
+    if (this.data.pageIsEnd) {
+      return
+    }
     AUTH.checkHasLogined().then(isLogined => {
       this.setData({
         wxlogin: isLogined
@@ -162,7 +166,9 @@ Page({
     }
 
     WXAPI.orderCreate(postData).then(function (res) {
+      that.data.pageIsEnd = true
       if (res.code != 0) {
+        that.data.pageIsEnd = false
         wx.showModal({
           title: '错误',
           content: res.msg,
@@ -195,6 +201,7 @@ Page({
           hasNoCoupons,
           coupons
         });
+        that.data.pageIsEnd = false
         return;
       }
       that.processAfterCreateOrder(res)
@@ -211,13 +218,39 @@ Page({
       wx.redirectTo({
         url: "/pages/order-list/index"
       });
+      this.data.pageIsEnd = false
       return
     }
     const money = res.data.amountReal * 1 - res1.data.balance*1
     if (money <= 0) {
-      wx.redirectTo({
-        url: "/pages/order-list/index"
-      })
+      // 直接用余额支付
+      wx.showModal({
+        title: '请确认支付',
+        content: `您当前可用余额¥${res1.data.balance}，使用余额支付¥${res.data.amountReal}？`,
+        confirmText: "确认支付",
+        cancelText: "暂不付款",
+        success: res2 => {
+          if (res2.confirm) {
+            // 使用余额支付
+            WXAPI.orderPay(wx.getStorageSync('token'), res.data.id).then(res3 => {
+              if (res3.code != 0) {
+                wx.showToast({
+                  title: res3.msg,
+                  icon: 'none'
+                })
+                return
+              }
+              wx.redirectTo({
+                url: "/pages/order-list/index"
+              })
+            })
+          } else {
+            wx.redirectTo({
+              url: "/pages/order-list/index"
+            })
+          }
+        }
+      })      
     } else {
       wxpay.wxpay('order', money, res.data.id, "/pages/order-list/index");
     }
@@ -235,7 +268,7 @@ Page({
     }
     this.processYunfei();
   },
-  processYunfei() {    
+  processYunfei() {
     var goodsList = this.data.goodsList
     if (goodsList.length == 0) {
       return
