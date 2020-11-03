@@ -3,7 +3,18 @@ const CONFIG = require('config.js')
 const AUTH = require('utils/auth')
 App({
   onLaunch: function() {
-    WXAPI.init(CONFIG.subDomain)
+    const subDomain = wx.getExtConfigSync().subDomain
+    const componentAppid = wx.getExtConfigSync().componentAppid
+    if (componentAppid) {
+      wx.setStorageSync('appid', wx.getAccountInfoSync().miniProgram.appId)
+      wx.setStorageSync('componentAppid', componentAppid)
+    }
+    if (subDomain) {
+      WXAPI.init(subDomain)
+    } else {
+      WXAPI.init(CONFIG.subDomain)
+    }
+    
     const that = this;
     // 检测新版本
     const updateManager = wx.getUpdateManager()
@@ -53,7 +64,7 @@ App({
         wx.hideToast()
       }
     })
-    WXAPI.queryConfigBatch('mallName,WITHDRAW_MIN,ALLOW_SELF_COLLECTION,order_hx_uids,subscribe_ids,share_profile').then(res => {
+    WXAPI.queryConfigBatch('mallName,WITHDRAW_MIN,ALLOW_SELF_COLLECTION,order_hx_uids,subscribe_ids,share_profile,gooking_test').then(res => {
       if (res.code == 0) {
         res.data.forEach(config => {
           wx.setStorageSync(config.key, config.value);
@@ -105,18 +116,6 @@ App({
     AUTH.checkHasLogined().then(async isLogined => {
       if (!isLogined) {
         AUTH.login()
-      } else {
-        AUTH.getUserInfo().then((res) => {
-          const { userInfo } = res
-          // 更新用户信息
-          WXAPI.modifyUserInfo({
-            avatarUrl: userInfo.avatarUrl,
-            city: userInfo.city,
-            nick: userInfo.nickName,
-            province: userInfo.province,
-            token: wx.getStorageSync('token')
-          })
-        })
       }
     })
   },
